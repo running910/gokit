@@ -37,6 +37,14 @@ func main() {
 
 	ipt.DeleteChain(network.IpProtoV4, "filter", "hellochain")
 
+	logger.Info(misc.CheckIfSliceContain([]int{1, 2, 4, 5}, 5))
+
+	logger.Info(misc.CheckIfSliceContain([]int{1, 2, 4, 5}, 0))
+
+	logger.Info(misc.CheckIfSliceContain([]string{"acc", "bbb", "eee"}, "a"))
+
+	logger.Info(misc.CheckIfSliceContain([]string{"acc", "bbb", "eee"}, "bbb"))
+
 	fs.Hello()
 	misc.Hello()
 }
