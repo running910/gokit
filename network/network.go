@@ -8,6 +8,13 @@ import (
 	"github.com/running910/gokit/logger"
 )
 
+type IpProto string
+
+const (
+	IpProtoV4 IpProto = "ipv4"
+	IpProtoV6 IpProto = "ipv6"
+)
+
 func Ping(dst string, src string) error {
 	pinger, err := ping.NewPinger(dst)
 	if err != nil {

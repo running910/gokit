@@ -3,6 +3,7 @@ module github.com/running910/gokit
 go 1.19
 
 require (
+	github.com/coreos/go-iptables v0.7.0 // indirect
 	github.com/go-ping/ping v1.1.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/safchain/ethtool v0.3.0 // indirect
