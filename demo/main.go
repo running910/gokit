@@ -32,6 +32,11 @@ func main() {
 		return
 	}
 
+	specs = []string{"-j", "hellochain"}
+	ipt.DeleteRule(network.IpProtoV4, "filter", "INPUT", specs...)
+
+	ipt.DeleteChain(network.IpProtoV4, "filter", "hellochain")
+
 	fs.Hello()
 	misc.Hello()
 }

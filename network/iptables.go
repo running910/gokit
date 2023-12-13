@@ -106,3 +106,35 @@ func (i *IptablesCtx) EnsureRuleInserted(proto IpProto, table, chain string, spe
 
 	return nil
 }
+
+func (i *IptablesCtx) DeleteRule(proto IpProto, table, chain string, specs ...string) error {
+
+	ipt := i.ip4t
+	if proto == IpProtoV6 {
+		ipt = i.ip6t
+	}
+
+	err := ipt.DeleteIfExists(table, chain, specs...)
+	if err != nil {
+		logger.Errorf("DeleteIfExists %s table %s chain specs:%+v failed! reason:%s", table, chain, specs, err)
+		return err
+	}
+
+	return nil
+}
+
+func (i *IptablesCtx) DeleteChain(proto IpProto, table, chain string) error {
+
+	ipt := i.ip4t
+	if proto == IpProtoV6 {
+		ipt = i.ip6t
+	}
+
+	err := ipt.ClearAndDeleteChain(table, chain)
+	if err != nil {
+		logger.Errorf("ClearAndDeleteChain %s table %s chain failed! reason: %s", table, chain, err)
+		return err
+	}
+
+	return nil
+}
