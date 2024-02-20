@@ -65,7 +65,11 @@ func TimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 }
 
-func LogInit(isDev bool, level string, logFile string, maxSizeMB int, maxBackups int, maxAgeDays int, compress bool) {
+func TimeEncoderFixedCstZone(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.In(time.FixedZone("CST", 8*60*60)).Format("2006-01-02 15:04:05.000"))
+}
+
+func LogInit(isDev bool, level string, logFile string, maxSizeMB int, maxBackups int, maxAgeDays int, compress bool, fixedCstZone bool) {
 	if logFile == "-" {
 		// to stdout
 		logs.SetFlags(logs.Ldate | logs.Ltime | logs.Lshortfile)
@@ -91,6 +95,11 @@ func LogInit(isDev bool, level string, logFile string, maxSizeMB int, maxBackups
 		Compress:   compress,
 	}
 
+	encodeTimefunc := TimeEncoder
+	if fixedCstZone {
+		encodeTimefunc = TimeEncoderFixedCstZone
+	}
+
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -100,7 +109,7 @@ func LogInit(isDev bool, level string, logFile string, maxSizeMB int, maxBackups
 		CallerKey:      "caller",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写编码器
-		EncodeTime:     TimeEncoder,
+		EncodeTime:     encodeTimefunc,
 		EncodeDuration: zapcore.SecondsDurationEncoder, //
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 		EncodeName:     zapcore.FullNameEncoder,
