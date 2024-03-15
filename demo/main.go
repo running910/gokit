@@ -47,4 +47,33 @@ func main() {
 
 	fs.Hello()
 	misc.Hello()
+
+	nic := "eth1"
+
+	//misc.AttachPciDevDriver("0000:02:05.0", "e1000")
+	//misc.AttachPciDevDriver("0000:06:00.1", "ixgbe")
+	//os.Exit(-1)
+
+	slot, err := misc.GetNicPciSlotId(nic)
+
+	logger.Info(slot, err)
+
+	driver, err := misc.GetNicDriver(nic)
+
+	logger.Info(driver, err)
+
+	vendor, err := misc.GetNicVendor(nic)
+
+	logger.Info(vendor, err)
+
+	device, err := misc.GetNicDevice(nic)
+
+	logger.Info(device, err)
+
+	err = misc.DetachPciDevDriver(slot, driver)
+	logger.Info("err,", err)
+
+	err = misc.AttachPciDevToVfioDriver(vendor, device)
+	logger.Info("err,", err)
+
 }

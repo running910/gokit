@@ -5,12 +5,123 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
+
+	lg "github.com/running910/gokit/logger"
 )
 
 func Hello() {
 	fmt.Println("this is from gokit misc package.")
+}
+
+// status orignal driverdetached vfioattached unknown
+type pci_nic struct {
+	Name   string
+	Driver string
+	SlotId string
+	Vendor string
+	Device string
+	Status int
+}
+
+func (p *pci_nic) UpdateStatus() {
+
+}
+
+func GetNicVendor(nic string) (string, error) {
+	file := fmt.Sprintf("/sys/class/net/%s/device/vendor", nic)
+
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(content)), nil
+}
+
+func GetNicDevice(nic string) (string, error) {
+	file := fmt.Sprintf("/sys/class/net/%s/device/device", nic)
+
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(content)), nil
+}
+
+func GetNicDriver(nic string) (string, error) {
+
+	// realpath /sys/class/net/ens37/device/driver/module/
+	moduleFile := fmt.Sprintf("/sys/class/net/%s/device/driver/module", nic)
+
+	devicePath, err := os.Readlink(moduleFile)
+	if err != nil {
+		return "", err
+	}
+
+	lg.Info("moduleFile: ", moduleFile, "drivername", devicePath)
+
+	tokens := strings.Split(devicePath, "/")
+	if len(tokens) < 1 {
+		return "", fmt.Errorf("nic device path format error")
+	}
+
+	return tokens[len(tokens)-1], nil
+
+}
+
+func GetNicPciSlotId(nic string) (string, error) {
+
+	interfacePath := filepath.Join("/sys/class/net", nic)
+	devicePath, err := os.Readlink(interfacePath)
+	if err != nil {
+		return "", err
+	}
+
+	tokens := strings.Split(devicePath, "/")
+	if len(tokens) < 3 {
+		return "", fmt.Errorf("nic device path format error")
+	}
+	pciSlot := tokens[len(tokens)-3]
+
+	return pciSlot, nil
+}
+
+func GetPciDevDriver(pciSlotId string) (string, error) {
+	return "", nil
+}
+
+func DetachPciDevDriver(pciSlotId string, driver string) error {
+	unbindFile := fmt.Sprintf("/sys/bus/pci/drivers/%s/unbind", driver)
+
+	return ioutil.WriteFile(unbindFile, []byte(pciSlotId), os.ModeExclusive)
+}
+
+func AttachPciDevDriver(pciSlotId string, driver string) error {
+	bindFile := fmt.Sprintf("/sys/bus/pci/drivers/%s/bind", driver)
+
+	return ioutil.WriteFile(bindFile, []byte(pciSlotId), os.ModeExclusive)
+}
+
+func AttachPciDevToVfioDriver(vendor string, device string) error {
+	bindFile := fmt.Sprintf("/sys/bus/pci/drivers/vfio-pci/new_id")
+
+	content := fmt.Sprintf("%s %s", vendor, device)
+
+	return ioutil.WriteFile(bindFile, []byte(content), os.ModeExclusive)
+}
+
+func DetachPciDevToVfioDriver(pciSlotId string) error {
+	bindFile := fmt.Sprintf("/sys/bus/pci/drivers/vfio-pci/unbind")
+
+	content := fmt.Sprintf("%s", pciSlotId)
+
+	return ioutil.WriteFile(bindFile, []byte(content), os.ModeExclusive)
 }
 
 func PrettyPrint(i interface{}) string {
